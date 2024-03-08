@@ -9,7 +9,7 @@ from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.models import Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.optimizers import Adam
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, recall_score, precision_score
 from keras.models import load_model
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
@@ -93,6 +93,7 @@ class_indices_file = 'class_indices.json'
 with open(class_indices_file, 'w') as file:
     json.dump(class_indices, file)
 
+#daqui pra baixo é tudo pra matriz de confusão
 with open('class_indices.json') as file:
     class_indices = json.load(file)
 class_labels = {v: k for k, v in class_indices.items()}
@@ -115,3 +116,11 @@ plt.title('Matriz de Confusão')
 plt.ylabel('Verdadeiros')
 plt.xlabel('Predições')
 plt.show()
+
+recall = recall_score(true_classes, predicted_classes, average=None, labels=np.unique(true_classes))
+precision = precision_score(true_classes, predicted_classes, average=None, labels=np.unique(true_classes))
+
+# Transformando recall e precision em um DataFrame para melhor visualização
+performance_df = pd.DataFrame({'Recall': recall, 'Precision': precision}, index=class_labels.values())
+
+print(performance_df)
