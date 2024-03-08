@@ -1,10 +1,16 @@
 import os
-from keras.layers import Dense, GlobalAveragePooling2D
-from keras.models import Model
+import json
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import VGG16, preprocess_input
+from keras.models import Model
+from keras.layers import Dense, GlobalAveragePooling2D
 from keras.optimizers import Adam
-import json
+from sklearn.metrics import confusion_matrix
+from keras.models import load_model
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -44,7 +50,8 @@ test_generator = test_datagen.flow_from_directory(
     test_dir,
     target_size=image_size,
     batch_size=batch_size,
-    class_mode='categorical'
+    class_mode='categorical',
+    shuffle=False #pros testes da matriz de confusão ficarem na ordem correta
 )
 
 # Carregar a rede VGG16 com os pesos pré-treinados e sem as camadas superiores
@@ -85,3 +92,26 @@ class_indices_file = 'class_indices.json'
 
 with open(class_indices_file, 'w') as file:
     json.dump(class_indices, file)
+
+with open('class_indices.json') as file:
+    class_indices = json.load(file)
+class_labels = {v: k for k, v in class_indices.items()}
+
+# Calculando matriz de confusão
+model = load_model('sword_classifier_model.keras')
+test_generator.reset()
+predictions = model.predict(test_generator, steps=np.ceil(test_generator.n / test_generator.batch_size))
+predicted_classes = np.argmax(predictions, axis=1)
+true_classes = test_generator.classes
+conf_matrix = confusion_matrix(true_classes, predicted_classes)
+
+# Transformando a matriz de confusão em um DataFrame do pandas para melhor visualização
+conf_matrix_df = pd.DataFrame(conf_matrix, index=class_labels.values(), columns=class_labels.values())
+
+# Usando seaborn para criar um heatmap da matriz de confusão
+plt.figure(figsize=(10, 7))
+sns.heatmap(conf_matrix_df, annot=True, fmt='g', cmap='Blues')
+plt.title('Matriz de Confusão')
+plt.ylabel('Verdadeiros')
+plt.xlabel('Predições')
+plt.show()
