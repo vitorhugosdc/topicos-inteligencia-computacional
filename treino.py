@@ -5,7 +5,6 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.optimizers import Adam
 
-# Obter o caminho do diretório atual onde o script está
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Definição dos caminhos para os diretórios de treino e teste
@@ -14,9 +13,9 @@ test_dir = os.path.join(base_dir, 'teste')
 
 # Dimensões das imagens e tamanho do lote (batch size)
 image_size = (224, 224)
-batch_size = 32
+batch_size = 8
 
-# Preparação dos dados com aumento de dados para o conjunto de treinamento
+# Preparação dos dados com aumento data augmentation para o conjunto de treinamento
 train_datagen = ImageDataGenerator(
     preprocessing_function=preprocess_input,
     rotation_range=40,
@@ -28,7 +27,7 @@ train_datagen = ImageDataGenerator(
     fill_mode='nearest'
 )
 
-# O conjunto de teste não deve ter aumento de dados, mas ainda precisa ser normalizado
+# Normaliza o conjunto de testes (não é aumentado)
 test_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
 
 # Gerador de dados para treinamento
@@ -56,7 +55,7 @@ x = GlobalAveragePooling2D()(x)
 x = Dense(1024, activation='relu')(x)
 predictions = Dense(3, activation='softmax')(x)
 
-# Este é o modelo que vamos treinar
+# Modelo a ser treinado
 model = Model(inputs=base_model.input, outputs=predictions)
 
 # Congelar as camadas do modelo base para não serem treinadas
@@ -64,16 +63,18 @@ for layer in base_model.layers:
     layer.trainable = False
 
 # Compilar o modelo
-model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
+
+steps_per_epoch = max(1, train_generator.n // train_generator.batch_size)
+validation_steps = max(1, test_generator.n // test_generator.batch_size)
 
 # Treinamento do modelo
 model.fit(
     train_generator,
-    steps_per_epoch=train_generator.n // batch_size,
+    steps_per_epoch=steps_per_epoch,
     epochs=10,
     validation_data=test_generator,
-    validation_steps=test_generator.n // batch_size
+    validation_steps=validation_steps
 )
 
-# Salvar o modelo treinado
-model.save('sword_classifier_model.h5')
+model.save('sword_classifier_model.keras')
