@@ -4,6 +4,7 @@ from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.optimizers import Adam
+import json
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -78,3 +79,9 @@ model.fit(
 )
 
 model.save('sword_classifier_model.keras')
+
+class_indices = train_generator.class_indices
+class_indices_file = 'class_indices.json'
+
+with open(class_indices_file, 'w') as file:
+    json.dump(class_indices, file)
