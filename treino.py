@@ -98,6 +98,8 @@ with open('class_indices.json') as file:
     class_indices = json.load(file)
 class_labels = {v: k for k, v in class_indices.items()}
 
+os.makedirs('./data', exist_ok=True)
+
 # Calculando matriz de confusão
 model = load_model('sword_classifier_model.keras')
 test_generator.reset()
@@ -115,12 +117,15 @@ sns.heatmap(conf_matrix_df, annot=True, fmt='g', cmap='Blues')
 plt.title('Matriz de Confusão')
 plt.ylabel('Verdadeiros')
 plt.xlabel('Predições')
-plt.show()
+plt.savefig('./data/matriz_de_confusao.png')  
+#plt.show()
 
 recall = recall_score(true_classes, predicted_classes, average=None, labels=np.unique(true_classes))
 precision = precision_score(true_classes, predicted_classes, average=None, labels=np.unique(true_classes))
 
 # Transformando recall e precision em um DataFrame para melhor visualização
 performance_df = pd.DataFrame({'Recall': recall, 'Precision': precision}, index=class_labels.values())
+
+performance_df.to_csv('./data/performance.csv', sep=';',index_label='Class')
 
 print(performance_df)
