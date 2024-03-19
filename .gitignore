@@ -2,3 +2,5 @@
 *.keras
 *.csv
 *.json
+data/
+modelos_bons/
