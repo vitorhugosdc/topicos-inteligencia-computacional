@@ -7,7 +7,7 @@ import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.models import Model
-from keras.layers import Dense, GlobalAveragePooling2D
+from keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix, recall_score, precision_score
 from keras.models import load_model
@@ -61,6 +61,7 @@ base_model = VGG16(weights='imagenet', include_top=False)
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dense(1024, activation='relu')(x)
+x = Dropout(0.3)(x)
 predictions = Dense(8, activation='softmax')(x)
 
 # Modelo a ser treinado
