@@ -80,7 +80,7 @@ validation_steps = max(1, test_generator.n // test_generator.batch_size)
 model.fit(
     train_generator,
     steps_per_epoch=steps_per_epoch,
-    epochs=10,
+    epochs=25,
     validation_data=test_generator,
     validation_steps=validation_steps
 )
@@ -111,14 +111,17 @@ conf_matrix = confusion_matrix(true_classes, predicted_classes)
 # Transformando a matriz de confusão em um DataFrame do pandas para melhor visualização
 conf_matrix_df = pd.DataFrame(conf_matrix, index=class_labels.values(), columns=class_labels.values())
 
-# Usando seaborn para criar um heatmap da matriz de confusão
-plt.figure(figsize=(10, 7))
+plt.figure(figsize=(7, 7))
+
 sns.heatmap(conf_matrix_df, annot=True, fmt='g', cmap='Blues')
+
 plt.title('Matriz de Confusão')
 plt.ylabel('Verdadeiros')
 plt.xlabel('Predições')
-plt.savefig('./data/matriz_de_confusao.png')  
-#plt.show()
+plt.xticks(rotation=45)
+plt.yticks(rotation=0)
+plt.tight_layout()
+plt.savefig('./data/matriz_de_confusao.png', dpi=300)
 
 recall = recall_score(true_classes, predicted_classes, average=None, labels=np.unique(true_classes))
 precision = precision_score(true_classes, predicted_classes, average=None, labels=np.unique(true_classes))
