@@ -12,6 +12,8 @@ from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix, recall_score, precision_score
 from keras.models import load_model
 
+from PIL import Image, ImageDraw, ImageFont
+
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Definição dos caminhos para os diretórios de treino e teste
@@ -20,7 +22,7 @@ test_dir = os.path.join(base_dir, 'teste')
 
 # Dimensões das imagens e tamanho do lote (batch size)
 image_size = (224, 224)
-batch_size = 8
+batch_size = 7
 
 # Preparação dos dados com aumento data augmentation para o conjunto de treinamento
 train_datagen = ImageDataGenerator(
@@ -62,7 +64,7 @@ x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dense(1024, activation='relu')(x)
 x = Dropout(0.3)(x)
-predictions = Dense(8, activation='softmax')(x)
+predictions = Dense(7, activation='softmax')(x)
 
 # Modelo a ser treinado
 model = Model(inputs=base_model.input, outputs=predictions)
@@ -107,6 +109,32 @@ test_generator.reset()
 predictions = model.predict(test_generator, steps=np.ceil(test_generator.n / test_generator.batch_size))
 predicted_classes = np.argmax(predictions, axis=1)
 true_classes = test_generator.classes
+
+for i in range(len(test_generator.filenames)):
+    # Caminho para a imagem original
+    original_image_path = os.path.join(test_dir, test_generator.filenames[i])
+    image = Image.open(original_image_path)
+
+    # Converte a imagem para o modo RGB
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+
+    # Prepara o texto com a classe real, a prevista e a confiança
+    true_label = class_labels[true_classes[i]]
+    predicted_label = class_labels[predicted_classes[i]]
+    confidence = np.max(predictions[i]) * 100
+
+    text = f'Verdadeiro: {true_label}\nPrevisto: {predicted_label} ({confidence:.2f}%)'
+
+    # Adiciona o texto à imagem
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()  # ou especifique uma fonte
+    draw.text((10, 10), text, fill="white", font=font)
+
+    # Salva a imagem anotada
+    save_path = os.path.join('./data', f'annotated_{i}.png')
+    image.save(save_path)
+
 conf_matrix = confusion_matrix(true_classes, predicted_classes)
 
 # Transformando a matriz de confusão em um DataFrame do pandas para melhor visualização
