@@ -63,7 +63,7 @@ base_model = VGG16(weights='imagenet', include_top=False)
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dense(1024, activation='relu')(x)
-x = Dropout(0.3)(x)
+x = Dropout(0.40)(x)
 predictions = Dense(7, activation='softmax')(x)
 
 # Modelo a ser treinado
@@ -80,7 +80,7 @@ steps_per_epoch = max(1, train_generator.n // train_generator.batch_size)
 validation_steps = max(1, test_generator.n // test_generator.batch_size)
 
 # Treinamento do modelo
-model.fit(
+history = model.fit(
     train_generator,
     steps_per_epoch=steps_per_epoch,
     epochs=25,
@@ -134,6 +134,34 @@ for i in range(len(test_generator.filenames)):
     # Salva a imagem anotada
     save_path = os.path.join('./data', f'annotated_{i}.png')
     image.save(save_path)
+
+# Acurácia do Modelo
+plt.figure(figsize=(10, 6))  # Ajuste o tamanho conforme necessário
+sns.set_theme(style="whitegrid")  # Estilo de fundo do gráfico
+plt.plot(range(1, 26), history.history['accuracy'], label='Treino', color='blue', linewidth=2)  # Linha mais espessa
+plt.plot(range(1, 26), history.history['val_accuracy'], label='Validação', color='red', linewidth=2)
+plt.title('Acurácia do Modelo')
+plt.ylabel('Acurácia')
+plt.xlabel('Época')
+plt.legend(loc='lower right')
+plt.xticks(range(1, 26))  # Define explicitamente os ticks do eixo x
+plt.xlim(1, 25)  # Define o limite do eixo x para começar na época 1
+plt.ylim([0, 1])  # Ajustar o limite do eixo Y se necessário
+plt.savefig('./data/model_accuracy.png')  # Salvar o gráfico
+
+# Perda do Modelo
+plt.figure(figsize=(10, 6))
+sns.set_theme(style="whitegrid")
+plt.plot(range(1, 26), history.history['loss'], label='Treino', color='blue', linewidth=2)
+plt.plot(range(1, 26), history.history['val_loss'], label='Validação', color='red', linewidth=2)
+plt.title('Perda do Modelo')
+plt.ylabel('Perda')
+plt.xlabel('Época')
+plt.legend(loc='upper right')
+plt.xticks(range(1, 26))  # Define explicitamente os ticks do eixo x
+plt.xlim(1, 25)  # Define o limite do eixo x para começar na época 1
+plt.ylim(0, max(max(history.history['loss']), max(history.history['val_loss'])) * 1.1)  # Ajustar o limite do eixo Y se necessário
+plt.savefig('./data/model_loss.png')
 
 conf_matrix = confusion_matrix(true_classes, predicted_classes)
 
