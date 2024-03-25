@@ -63,7 +63,7 @@ base_model = VGG16(weights='imagenet', include_top=False)
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dense(1024, activation='relu')(x)
-x = Dropout(0.40)(x)
+x = Dropout(0.30)(x)
 predictions = Dense(7, activation='softmax')(x)
 
 # Modelo a ser treinado
